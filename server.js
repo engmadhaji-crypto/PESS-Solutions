@@ -13,6 +13,23 @@ const J = s => { try { return JSON.parse(s) } catch (e) { return {} } };
 const getMeta = k => { const r = db.prepare('SELECT v FROM meta WHERE k=?').get(k); return r ? r.v : null };
 const setMeta = (k, v) => db.prepare('INSERT INTO meta(k,v) VALUES(?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').run(k, String(v));
 const rev = () => +getMeta('rev') || 0;
+function validateData(d) {
+  const errors = [], clientIds = new Set(), contractIds = new Set();
+  if (!d || !Array.isArray(d.clients)) return ['clients must be an array'];
+  for (const c of d.clients) {
+    if (!Number.isFinite(+c.id) || +c.id <= 0) errors.push('invalid client id');
+    if (clientIds.has(+c.id)) errors.push('duplicate client id: ' + c.id); clientIds.add(+c.id);
+    if (typeof c.name !== 'string') errors.push('invalid client name for client ' + c.id);
+    if (!Array.isArray(c.contracts)) errors.push('contracts must be an array for client ' + c.id);
+    for (const k of c.contracts || []) {
+      if (!Number.isFinite(+k.id) || +k.id <= 0) errors.push('invalid contract id');
+      if (contractIds.has(+k.id)) errors.push('duplicate contract id: ' + k.id); contractIds.add(+k.id);
+      if (!Array.isArray(k.payments)) errors.push('payments must be an array for contract ' + k.id);
+      for (const p of k.payments || []) if (!Number.isFinite(+p.amount)) errors.push('invalid payment amount in contract ' + k.id);
+    }
+  }
+  return errors.slice(0, 50);
+}
 
 function readAll() {
   const clients = db.prepare('SELECT * FROM clients ORDER BY id').all()
@@ -35,7 +52,7 @@ function readAll() {
 }
 
 function writeAll(d) {
-  if (!d || !Array.isArray(d.clients)) throw new Error('bad data');
+  const validation = validateData(d); if (validation.length) { const e = new Error('invalid data'); e.code = 'VALIDATION'; e.details = validation; throw e; }
   const n = v => Number.isFinite(+v) ? +v : 0, s = v => v == null ? '' : String(v), j = v => JSON.stringify(v || {});
   db.exec('BEGIN IMMEDIATE');
   try {
@@ -81,12 +98,15 @@ const srv = http.createServer(async (req, res) => {
       if (u.pathname === '/api/data' && req.method === 'PUT') {
         const b = JSON.parse(await body(req));
         if (b.baseRev !== -1 && b.baseRev !== rev()) return send(409, { error: 'conflict', rev: rev() });
-        return send(200, { rev: writeAll(b.data) });
+        try { return send(200, { rev: writeAll(b.data) }); }
+        catch (e) { if (e.code === 'VALIDATION') return send(422, { error: 'invalid_data', details: e.details }); throw e; }
       }
       if (u.pathname === '/api/sql' && req.method === 'POST') { // استعلامات قراءة فقط (SELECT)
         const { sql } = JSON.parse(await body(req));
+        const q = String(sql || '').trim();
+        if (!/^(SELECT|WITH\b[\s\S]*\bSELECT)\b/i.test(q) || /;|\b(PRAGMA|ATTACH|DETACH|INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|REPLACE|VACUUM)\b/i.test(q)) return send(400, { error: 'select_only' });
         const ro = new DatabaseSync(DBF, { readOnly: true });
-        try { return send(200, { rows: ro.prepare(String(sql)).all().slice(0, 5000) }) } finally { ro.close() }
+        try { return send(200, { rows: ro.prepare(q).all().slice(0, 5000) }) } finally { ro.close() }
       }
     }
     send(404, { error: 'not found' });
@@ -102,4 +122,5 @@ function backup() {
   } catch (e) { console.error('backup failed:', e.message); }
 }
 backup(); setInterval(backup, 6 * 3600e3).unref();
-srv.listen(PORT, '0.0.0.0', () => console.log('PESS server on :' + PORT + (TOKEN ? ' (token required)' : ' (NO TOKEN — set PESS_TOKEN before exposing online)') + '\nDB: ' + DBF));
+if (process.env.NODE_ENV === 'production' && !TOKEN) { console.error('PESS_TOKEN is required in production'); process.exit(1); }
+srv.listen(PORT, '0.0.0.0', () => console.log('PESS server on :' + PORT + (TOKEN ? ' (token required)' : ' (local mode — set PESS_TOKEN before exposing online)') + '\nDB: ' + DBF));
