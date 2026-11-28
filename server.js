@@ -68,10 +68,12 @@ const body = req => new Promise((ok, no) => { let b = '', n = 0; req.on('data', 
 
 const srv = http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://x');
-  const send = (c, o, t = 'application/json; charset=utf-8') => { res.writeHead(c, { 'Content-Type': t, 'Cache-Control': 'no-store' }); res.end(typeof o === 'string' ? o : JSON.stringify(o)) };
+  const send = (c, o, t = 'application/json; charset=utf-8') => { res.writeHead(c, { 'Content-Type': t, 'Cache-Control': 'no-store' }); res.end(Buffer.isBuffer(o) || typeof o === 'string' ? o : JSON.stringify(o)) };
   try {
     if (u.pathname === '/' || u.pathname === '/index.html')
       return send(200, fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8'), 'text/html; charset=utf-8');
+    if (u.pathname === '/pess-logo.png')
+      return send(200, fs.readFileSync(path.join(__dirname, 'public', 'pess-logo.png')), 'image/png');
     if (u.pathname === '/api/health') return send(200, { pess: 1, rev: rev(), auth: !!TOKEN });
     if (u.pathname.startsWith('/api/')) {
       if (TOKEN && req.headers['x-token'] !== TOKEN) return send(401, { error: 'unauthorized' });

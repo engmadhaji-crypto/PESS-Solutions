@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>PESS V27</title>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>PESS الحلول الهندسية</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#002244"><meta name="mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
@@ -25,7 +25,7 @@ button,input,select,textarea,a{font-family:inherit;letter-spacing:0}.text-xs{fon
 <script>const ORIG=null;const COSTS={};</script>
 <script type="text/babel">
 const {useState,useRef,useEffect,useMemo}=React;
-const K='pess_v27_android',KB=K+'_bak';
+const K='pess_v27_android',KB=K+'_bak',BRAND='PESS الحلول الهندسية';
 const METHODS=['نقداً','كاش','ون كاش','جيب','جوالي','الكريمي','حوالة','شيك','تقدير','فلوسك','أم فلوس','أخرى'];
 const TYPES=['منتهي تقسيط','تقسيط','نقد','رشيد'];
 const RES=['وعد بالسداد','لم يرد','طلب مهلة','سيسدد قريباً','رفض','أخرى'];
@@ -36,8 +36,8 @@ const applyLists=d=>{const L=d.lists||{};[[TYPES,'types'],[METHODS,'methods'],[R
 const num=v=>{if(v==null)return 0;const s=String(v).replace(/[٠-٩]/g,d=>d.charCodeAt(0)-1632).replace(/[۰-۹]/g,d=>d.charCodeAt(0)-1776).replace(/[,٬،\s]/g,'');const n=parseFloat(s);return isFinite(n)?n:0};
 const r2=n=>Math.round(n*100)/100,fmt=n=>Math.round(n).toLocaleString('en-US'),pad2=n=>String(n).padStart(2,'0'),ld=d=>d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()),today=()=>ld(new Date());
 const nid=a=>(a||[]).reduce((m,x)=>Math.max(m,+x.id||0),0)+1;
-const fromOrig=o=>({clients:(o.customers||[]).map((c,i)=>({id:i+1,name:c['العميل'],x:c['حقول']||{},phones:((o.phones||{})[c['العميل']]||[]).map(p=>({n:p.number,l:p.label})),credit:num((o.creditLimits||{})[c['العميل']]),calls:(o.callLogs||{})[c['العميل']]||[],
- contracts:(c['العقود']||[]).map(k=>({id:k.id,x:k['حقول']||{},sub:k['العميل_الفرعي']||'',items:(k['المواد']||'').trim(),type:k['النوع']||'تقسيط',months:num(k['اشهر_التقسيط']),total:num(k['اجمالي_السعر']),down:num(k['المقدمة']),discount:num(k['خصم']),cost:num((o.costs||{})[k.id]),date:k['تاريخ_الإضافة']||'',note:k['ملاحظة']||'',payments:(k['الدفعات']||[]).map((p,j)=>({id:j+1,x:p['حقول']||{},amount:num(p['قيمة']),date:p['تاريخ']||'',method:p['طريقة']||'نقداً',ref:p['مرجع']||'',note:p['ملاحظة']||''}))}))})),company:o.company||{},schema:o.schema||{c:[],k:[],p:[]},lists:o.lists||null,tables:o.tables||[],audit:[]});
+ const fromOrig=o=>({clients:(o.customers||[]).map((c,i)=>({id:num(c.id)||i+1,name:c['العميل']||c.name||'',x:c['حقول']||c.x||{},phones:((o.phones||{})[c['العميل']]||c.phones||[]).map(p=>({n:p.number||p.n||'',l:p.label||p.l||''})),credit:num((o.creditLimits||{})[c['العميل']])||num(c.credit),calls:(o.callLogs||{})[c['العميل']]||c.calls||[],
+ contracts:(c['العقود']||c.contracts||[]).map((k,j)=>({id:num(k.id)||j+1,x:k['حقول']||k.x||{},sub:k['العميل_الفرعي']||k.sub||'',items:(k['المواد']||k.items||'').trim(),type:k['النوع']||k.type||'تقسيط',months:num(k['اشهر_التقسيط']||k.months),total:num(k['اجمالي_السعر']||k.total),down:num(k['المقدمة']||k.down),discount:num(k['خصم']||k.discount),cost:num((o.costs||{})[k.id])||num(k.cost),date:k['تاريخ_الإضافة']||k.date||'',note:k['ملاحظة']||k.note||'',payments:(k['الدفعات']||k.payments||[]).map((p,j)=>({id:num(p.id)||j+1,x:p['حقول']||p.x||{},amount:num(p['قيمة']||p.amount),date:p['تاريخ']||p.date||'',method:p['طريقة']||p.method||'نقداً',ref:p['مرجع']||p.ref||'',note:p['ملاحظة']||p.note||''}))}))})),company:o.company||{},schema:o.schema||{c:[],k:[],p:[]},lists:o.lists||null,tables:o.tables||[],audit:[]});
 const toOrig=d=>{const o={customers:[],phones:{},company:d.company||{},callLogs:{},creditLimits:{},costs:{},schema:d.schema||{c:[],k:[],p:[]},lists:d.lists||null,tables:d.tables||[],date:new Date().toISOString()};d.clients.forEach(c=>{o.customers.push({'العميل':c.name,'حقول':c.x||{},'العقود':c.contracts.map(k=>{if(k.cost)o.costs[k.id]=k.cost;return{id:k.id,'حقول':k.x||{},'العميل_الفرعي':k.sub||'','المواد':k.items,'النوع':k.type,'اشهر_التقسيط':k.months,'اجمالي_السعر':k.total,'المقدمة':k.down,'خصم':k.discount,'ملاحظة':k.note||'','تاريخ_الإضافة':k.date||'','الدفعات':k.payments.map(p=>({'حقول':p.x||{},'قيمة':p.amount,'تاريخ':p.date,'ملاحظة':p.note,'طريقة':p.method,'مرجع':p.ref}))}})});
  if(c.phones.length)o.phones[c.name]=c.phones.map(p=>({number:p.n,label:p.l}));if(c.calls.length)o.callLogs[c.name]=c.calls;if(c.credit)o.creditLimits[c.name]=c.credit});return o};
 const toNative=d=>({format:'pess-native',version:27,exportedAt:new Date().toISOString(),data:JSON.parse(JSON.stringify(d))});
@@ -46,7 +46,7 @@ const migrate1=d=>{if(!d.m1){let n=0;d.clients.forEach(c=>c.contracts.forEach(k=
 const migrate2=d=>{if(d.m2)return d;const L={...DEF,...(d.lists||{})};const add=(k,v)=>{if(v&&!L[k].includes(v))L[k]=[...L[k],v]};
  d.clients.forEach(c=>{(c.phones||[]).forEach(p=>add('phl',p.l));(c.calls||[]).forEach(x=>add('res',x.result));c.contracts.forEach(k=>{add('types',k.type);(k.payments||[]).forEach(p=>add('methods',p.method))})});d.lists=L;d.m2=1;return d};
 const migrate=d=>migrate2(migrate1(d));
-const load=()=>{const best=[lsGet(K),lsGet(KB)].filter(Boolean).sort((x,y)=>(y._t||0)-(x._t||0))[0];return migrate(best||fromOrig(ORIG||{}))};
+const load=()=>{const best=[lsGet(K),lsGet(KB)].filter(Boolean).sort((x,y)=>(y._t||0)-(x._t||0))[0],d=migrate(best||fromOrig(ORIG||{}));d.company={name:BRAND,...(d.company||{})};return d};
 const idb=(m,v)=>new Promise(res=>{try{const r=indexedDB.open('pess',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onsuccess=()=>{try{const t=r.result.transaction('s',m==='get'?'readwrite':'readwrite').objectStore('s'),q=m==='get'?t.get('d'):t.put(v,'d');q.onsuccess=()=>res(q.result);q.onerror=()=>res(null)}catch(e){res(null)}};r.onerror=()=>res(null)}catch(e){res(null)}});
 const FL={sub:'العميل الفرعي',items:'المواد',type:'النوع',months:'الأشهر',total:'الإجمالي',down:'المقدمة',discount:'الخصم',cost:'التكلفة',date:'التاريخ',name:'الاسم',credit:'الحد الائتماني',amount:'مبلغ الدفعة',method:'طريقة الدفع',ref:'المرجع',note:'الملاحظة'};
 const cc=k=>{const ps=(k.payments||[]).filter(Boolean),paid=num(k.down)+ps.reduce((s,p)=>s+num(p.amount),0),rem=r2(num(k.total)-num(k.discount)-paid),profit=num(k.total)-num(k.cost)-num(k.discount);
@@ -99,9 +99,9 @@ const sortBy=(arr,get,dir)=>[...arr].sort((a,b)=>{const x=get(a),y=get(b);const 
 const ctKey=(k,s)=>s==='rem'?cc(k).rem:s==='sub'?(k.sub||''):s==='items'?(k.items||''):k.id;
 const SEV={'متعثر':4,'متأخر':3,'منتظم':2,'بدون دفعات':1,'مسدد':0,'جديد':-1};
 const lastPay=c=>c.contracts.flatMap(k=>(k.payments||[]).map(p=>p.date||'')).sort().pop()||'';
-const dlBlob=(name,blob)=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click()};
+ const dlBlob=(name,blob)=>{if(window.AndroidBridge&&blob&&blob.text){blob.text().then(t=>window.AndroidBridge.saveTextFile(name,t,blob.type||'application/octet-stream')).catch(()=>{});return}const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
 function xl(name,sheets){
- if(typeof XLSX==='undefined'){const rows=[];sheets.forEach(s=>{rows.push([s.n]);rows.push(s.h);s.r.forEach(r=>rows.push(r));rows.push([])});dlBlob(name.replace(/\.xlsx$/,'.csv'),new Blob(['\uFEFFsep=,\n'+rows.map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'}));return 'csv'}
+ if(typeof XLSX==='undefined'||window.AndroidBridge){const rows=[];sheets.forEach(s=>{rows.push([s.n]);rows.push(s.h);s.r.forEach(r=>rows.push(r));rows.push([])});dlBlob(name.replace(/\.xlsx$/,'.csv'),new Blob(['\uFEFFsep=,\n'+rows.map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'}));return 'csv'}
  const wb=XLSX.utils.book_new();
  sheets.forEach(s=>{const nr=s.r.length,aoa=[s.h].concat(s.r);if(s.tot)aoa.push(s.h.map((_,i)=>i===0?'الإجمالي':''));
   const ws=XLSX.utils.aoa_to_sheet(aoa);
@@ -547,7 +547,7 @@ function App(){
  const shown=useMemo(()=>sortBy(cl.filter(match).filter(c=>{const t=tot(c);return flt==='all'||(flt==='rem'&&t.r>0)||(flt==='paid'&&t.r<=0&&c.contracts.length>0)||(flt==='nopay'&&c.contracts.length>0&&c.contracts.every(k=>cc(k).st==='بدون دفعات'))||(flt==='new'&&!c.contracts.length)}),CLG[cs[0]]||CLG.rem,cs[1]),[cl,dq,flt,cs]);
  const all=cl.flatMap(c=>c.contracts.map(k=>({c,k,x:cc(k)}))),T=tot({contracts:cl.flatMap(c=>c.contracts)});
  const byType=TYPES.map(t=>({t,n:all.filter(a=>a.k.type===t).length}));
- const dl=(n,t,ty)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:ty}));a.download=n;a.click()};
+ const dl=(n,t,ty)=>{if(window.AndroidBridge){window.AndroidBridge.saveTextFile(n,String(t),ty||'text/plain;charset=utf-8');return}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:ty}));a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
  const csv=()=>{const SC=(data.schema||{}).c||[],SK=(data.schema||{}).k||[];dl('pess.csv','\uFEFFsep=,\n'+[['العميل','العقد','المواد','النوع','الصافي','المدفوع','الباقي','الربح','الحالة','العميل الفرعي','الهامش%'].concat(SC.map(f=>f.label),SK.map(f=>f.label))].concat(all.map(({c,k,x})=>[c.name,k.id,k.items,k.type,num(k.total)-num(k.discount),x.paid,x.rem,x.profit,x.st,k.sub||'',mg(k,x).toFixed(1)].concat(SC.map(f=>(c.x||{})[f.id]||''),SK.map(f=>(k.x||{})[f.id]||'')))).map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n'),'text/csv')};
  const imp=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const r=new FileReader();r.onload=async()=>{try{let o=JSON.parse(String(r.result).replace(/^\uFEFF/,''));
   if(o&&o.pessEnc){const pw=prompt('النسخة مشفّرة — أدخل كلمة المرور');if(!pw)return;try{o=await decJson(o,pw)}catch(x){say('كلمة المرور خاطئة أو الملف تالف');return}}
@@ -559,7 +559,7 @@ function App(){
 if(locked)return <Lock onOk={()=>setLocked(false)}/>;
  return <div className="max-w-xl mx-auto" style={{paddingBottom:120}}>
   <header className="p-3 text-white sticky top-0 z-10" style={{background:'linear-gradient(135deg,#002244,#0f7a3a)'}}>
-   <div className="flex justify-between items-center"><b className="text-lg">{({home:co.name||'PESS',cl:'العملاء',pm:'الدفعات',rp:'التقارير',more:'المزيد'})[tab]}</b><span className="text-xs"><span onClick={diag}>{st==='err'?'🔴 فشل الحفظ (اضغط)':st==='idb'?'🟡 حفظ بديل (اضغط)':'🟢 تم الحفظ '+new Date(saved).toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>{sync!=='local'&&<span> {sync==='ok'?'☁✓':sync==='busy'?'☁…':sync==='off'?'☁✕ بلا اتصال':'⚠ تعارض'}</span>} <button className="bg-white/25 rounded px-2 py-1 mr-1" onClick={()=>{save('force');say('تم الحفظ ✓')}}>حفظ الآن</button></span></div>
+   <div className="flex justify-between items-center"><b className="text-lg flex items-center gap-2">{tab==='home'&&<img src="/pess-logo.png" alt="PESS" style={{height:30,width:30,objectFit:'cover',borderRadius:6}}/>}{({home:co.name||BRAND,cl:'العملاء',pm:'الدفعات',rp:'التقارير',more:'المزيد'})[tab]}</b><span className="text-xs"><span onClick={diag}>{st==='err'?'🔴 فشل الحفظ (اضغط)':st==='idb'?'🟡 حفظ بديل (اضغط)':'🟢 تم الحفظ '+new Date(saved).toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>{sync!=='local'&&<span> {sync==='ok'?'☁✓':sync==='busy'?'☁…':sync==='off'?'☁✕ بلا اتصال':'⚠ تعارض'}</span>} <button className="bg-white/25 rounded px-2 py-1 mr-1" onClick={()=>{save('force');say('تم الحفظ ✓')}}>حفظ الآن</button></span></div>
    {(tab==='cl'||tab==='pm'||tab==='rp')&&<input className="inp mt-2" placeholder="🔍 بحث: اسم / رقم عقد / مواد" value={q} onChange={e=>setQ(e.target.value)}/>}</header>
   {sync==='conflict'&&<div className="p-3 text-sm text-white" style={{background:'#b91c1c'}}>⚠ تم تعديل البيانات على جهاز آخر. <button className="underline font-bold" onClick={()=>pull(false)}>تحميل بيانات السيرفر</button> · <button className="underline" onClick={()=>{if(confirm('استبدال بيانات السيرفر بنسختك؟'))doPush(true)}}>استبدال السيرفر بنسختي</button></div>}
   {st!=='ok'&&<div className="p-3 text-sm text-white" style={{background:st==='err'?'#b91c1c':'#b45309'}}>{st==='err'?'⚠ المتصفح يمنع التخزين: بياناتك لن تبقى بعد الإغلاق.':'⚠ التخزين الأساسي محجوب، يعمل التخزين البديل فقط.'} <button className="underline font-bold" onClick={()=>dl('PESS-Backup-'+today()+'.json',JSON.stringify(toOrig(data),null,1),'application/json')}>تحميل نسخة الآن</button> · <button className="underline" onClick={diag}>التفاصيل</button></div>}
