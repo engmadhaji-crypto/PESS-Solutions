@@ -7,6 +7,7 @@ on:
     paths:
       - "android/**"
       - "public/**"
+      - "PESS-seed.json"
       - ".github/workflows/android-apk.yml"
 
 jobs:
